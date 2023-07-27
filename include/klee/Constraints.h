@@ -45,6 +45,11 @@ public:
     constraints.clear();
   }
 
+  void dump() const {
+    for(auto c : constraints)
+      c->dump();
+  }
+
   ref<Expr> simplifyExpr(ref<Expr> e) const;
 
   void addConstraint(ref<Expr> e);
@@ -68,6 +73,8 @@ public:
   bool operator==(const ConstraintManager &other) const {
     return constraints == other.constraints;
   }
+
+  ConstraintManager& operator=(const klee::ConstraintManager&) = default;
   
 private:
   std::vector< ref<Expr> > constraints;
