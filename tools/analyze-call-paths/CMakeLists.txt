@@ -6,7 +6,7 @@
 # License. See LICENSE.TXT for details.
 #
 #===------------------------------------------------------------------------===#
-file(GLOB_RECURSE analyse-libvig-call-paths-sources
+file(GLOB_RECURSE analyze-call-paths-sources
   "*.cpp"
 )
 
@@ -21,8 +21,8 @@ file(GLOB_RECURSE klee-util-sources
 list(FILTER load-call-paths-sources EXCLUDE REGEX ".*main\\.cpp$")
 list(FILTER klee-util-sources EXCLUDE REGEX ".*main\\.cpp$")
 
-add_executable(analyse-libvig-call-paths
-  ${analyse-libvig-call-paths-sources}
+add_executable(analyze-call-paths
+  ${analyze-call-paths-sources}
   ${load-call-paths-sources}
   ${klee-util-sources}
 )
@@ -32,7 +32,7 @@ set(KLEE_LIBS
   kleeCore
 )
 
-target_include_directories(analyse-libvig-call-paths PRIVATE ../klee-util ../load-call-paths)
-target_link_libraries(analyse-libvig-call-paths ${KLEE_LIBS})
+target_include_directories(analyze-call-paths PRIVATE ../klee-util ../load-call-paths)
+target_link_libraries(analyze-call-paths ${KLEE_LIBS})
 
-install(TARGETS analyse-libvig-call-paths RUNTIME DESTINATION bin)
+install(TARGETS analyze-call-paths RUNTIME DESTINATION bin)

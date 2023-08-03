@@ -29,14 +29,14 @@
 #include <stack>
 #include <vector>
 
-#include "load-call-paths.h"
 #include "klee-util.h"
+#include "load-call-paths.h"
 
 namespace {
 llvm::cl::list<std::string> InputCallPathFiles(llvm::cl::desc("<call paths>"),
                                                llvm::cl::Positional,
                                                llvm::cl::OneOrMore);
-}
+} // namespace
 
 // term colors
 // src: https://stackoverflow.com/questions/9158150/colored-output-in-c/9158263
@@ -60,7 +60,7 @@ llvm::cl::list<std::string> InputCallPathFiles(llvm::cl::desc("<call paths>"),
 
 #define DEBUG
 
-#define UINT_16_SWAP_ENDIANNESS(p) ((((p) & 0xff) << 8) | ((p) >> 8 & 0xff))
+#define UINT_16_SWAP_ENDIANNESS(p) ((((p)&0xff) << 8) | ((p) >> 8 & 0xff))
 
 class KleeInterface {
 private:
@@ -165,7 +165,8 @@ public:
         break;
 
       else if (!success) {
-        std::cerr << RED << "expression: " << kutil::expr_to_string(expr) << "\n"
+        std::cerr << RED << "expression: " << kutil::expr_to_string(expr)
+                  << "\n"
                   << RESET;
         assert(false && "Solver unable to obtain value for given expression");
       }
@@ -435,8 +436,8 @@ public:
           builder->Read(new_uls.back(), e.index);
 
       replacements.insert(
-          { klee::expr::ExprHandle(const_cast<klee::ReadExpr *>(&e)),
-            replacement });
+          {klee::expr::ExprHandle(const_cast<klee::ReadExpr *>(&e)),
+           replacement});
 
       return Action::changeTo(replacement);
     }
@@ -490,11 +491,7 @@ klee::expr::ExprHandle get_arg_expr_from_call(const call_t &call,
 struct packet_chunk_t {
 
   struct protocol_t {
-    enum state_t {
-      COMPLETE,
-      INCOMPLETE,
-      NO_INFO
-    };
+    enum state_t { COMPLETE, INCOMPLETE, NO_INFO };
 
     unsigned int code;
     state_t state;
@@ -757,13 +754,13 @@ private:
   typedef void (PacketManager::*packet_manager_call_handler_t)(
       const call_t &call);
   typedef std::map<std::string, packet_manager_call_handler_t>
-  packet_manager_call_handler_map_t;
+      packet_manager_call_handler_map_t;
 
   std::pair<bool, unsigned int> src_device;
   std::pair<bool, unsigned int> dst_device;
 
   std::stack<std::pair<klee::expr::ExprHandle, unsigned int>>
-  borrowed_chunk_layer_pairs;
+      borrowed_chunk_layer_pairs;
   std::vector<packet_chunk_t> borrowed_chunks_processed;
   std::vector<translation_unit_t> translations;
 
@@ -871,9 +868,8 @@ private:
           chunks_byte_eq_expr, call_path_filename);
 
       if (!chunks_byte_eq) {
-        translations.push_back(
-            translation_unit_t{ borrowed_layer, w / 8,
-                                borrowed_byte,  returned_byte });
+        translations.push_back(translation_unit_t{
+            borrowed_layer, w / 8, borrowed_byte, returned_byte});
       }
     }
 
@@ -1027,11 +1023,7 @@ public:
 
 class LibvigAccessExpressionArgument {
 public:
-  enum Type {
-    READ,
-    WRITE,
-    RESULT
-  };
+  enum Type { READ, WRITE, RESULT };
 
 private:
   Type type;
@@ -1174,16 +1166,7 @@ public:
 
 class LibvigAccess {
 public:
-  enum operation {
-    READ,
-    WRITE,
-    NOP,
-    INIT,
-    CREATE,
-    VERIFY,
-    UPDATE,
-    DESTROY
-  };
+  enum operation { READ, WRITE, NOP, INIT, CREATE, VERIFY, UPDATE, DESTROY };
 
 private:
   std::pair<bool, unsigned int> id;
@@ -1477,8 +1460,8 @@ public:
     std::cerr << "  object       " << obj.second << "\n";
 
     if (read_arg.is_name_set()) {
-      std::cerr << "  read         " << kutil::expr_to_string(read_arg.get_expr())
-                << "\n";
+      std::cerr << "  read         "
+                << kutil::expr_to_string(read_arg.get_expr()) << "\n";
 
       if (read_arg.has_packet_dependencies()) {
         std::cerr << "\n";
@@ -1487,8 +1470,8 @@ public:
     }
 
     if (write_arg.is_name_set()) {
-      std::cerr << "  write        " << kutil::expr_to_string(write_arg.get_expr())
-                << "\n";
+      std::cerr << "  write        "
+                << kutil::expr_to_string(write_arg.get_expr()) << "\n";
 
       if (write_arg.has_packet_dependencies()) {
         std::cerr << "  packet dep   "
@@ -1498,8 +1481,8 @@ public:
     }
 
     if (result_arg.is_name_set()) {
-      std::cerr << "  result       " << kutil::expr_to_string(result_arg.get_expr())
-                << "\n";
+      std::cerr << "  result       "
+                << kutil::expr_to_string(result_arg.get_expr()) << "\n";
 
       if (result_arg.has_packet_dependencies()) {
         std::cerr << "  packet dep   "
@@ -1901,7 +1884,7 @@ private:
   std::vector<CallPathConstraint> packet_constraints;
 
   std::vector<std::shared_ptr<ConstraintBetweenCallPaths>>
-  generated_constraints_between_call_paths;
+      generated_constraints_between_call_paths;
   std::map<std::string, klee::ConstraintManager> constraints_per_call_path;
 
   KleeInterface build_klee_interface_between_call_paths(
@@ -2054,16 +2037,17 @@ public:
     }
 
     for (const klee::expr::ExprHandle &constraint : call_path->constraints) {
-      if (kutil::expr_to_string(constraint).find("packet_chunks") == std::string::npos)
+      if (kutil::expr_to_string(constraint).find("packet_chunks") ==
+          std::string::npos)
         continue;
 
       if (kutil::expr_to_string(constraint).find("vector_data_reset") ==
           std::string::npos)
         continue;
 
-      auto found =
-          std::find_if(packet_constraints.begin(), packet_constraints.end(),
-                       [&](const CallPathConstraint &call_path_constraint) {
+      auto found = std::find_if(
+          packet_constraints.begin(), packet_constraints.end(),
+          [&](const CallPathConstraint &call_path_constraint) {
             return call_path_constraint.constraint.compare(constraint) == 0;
           });
 
@@ -2109,12 +2093,12 @@ private:
   LibvigAccessesManager *accesses_manager;
 
   std::map<std::string, std::vector<LibvigAccessExpressionArgument>>
-  alias_replacements;
+      alias_replacements;
   std::vector<std::string> alias_list;
 
 public:
   AccessesStitcher() {
-    alias_list = std::vector<std::string>{ "vector_data_reset" };
+    alias_list = std::vector<std::string>{"vector_data_reset"};
   }
 
   void set_accesses_manager(LibvigAccessesManager *_accesses_manager) {
@@ -2251,11 +2235,12 @@ private:
         continue;
       }
 
-      auto is_stored = [&](klee::expr::ExprHandle expr)->bool {
+      auto is_stored = [&](klee::expr::ExprHandle expr) -> bool {
         for (auto inserted : replacements) {
           // hack
           auto replacement_expr = inserted.get_expr();
-          if (kutil::expr_to_string(replacement_expr) == kutil::expr_to_string(expr)) {
+          if (kutil::expr_to_string(replacement_expr) ==
+              kutil::expr_to_string(expr)) {
             return true;
           }
         }
