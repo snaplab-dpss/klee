@@ -9,11 +9,6 @@ Z3_DIR="$KLEE_DIR/../z3"
 
 BUILD_DIR="$KLEE_DIR/build"
 
-CMAKE_OPTIONS=(
-  "${COMMON_CMAKE_OPTIONS[@]}"
-  -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
-)
-
 build() {
   [ -d "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
   cd "$BUILD_DIR"
@@ -22,6 +17,7 @@ build() {
     CMAKE_PREFIX_PATH="$Z3_DIR/build" \
     CMAKE_INCLUDE_PATH="$Z3_DIR/build/include/" \
     cmake \
+      -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" \
       -DENABLE_UNIT_TESTS=OFF \
       -DBUILD_SHARED_LIBS=OFF \
       -DLLVM_CONFIG_BINARY="$LLVM_DIR/Release/bin/llvm-config" \
