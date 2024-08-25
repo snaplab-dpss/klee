@@ -3,63 +3,40 @@
 set -euo pipefail
 
 KLEE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KLEE_ULIBC="$KLEE_DIR/../klee-uclibc"
+LLVM_DIR="$KLEE_DIR/../llvm"
+Z3_DIR="$KLEE_DIR/../z3"
 
-function debug {
-  [ -d "$KLEE_DIR/Debug" ] || mkdir "$KLEE_DIR/Debug"
+BUILD_DIR="$KLEE_DIR/build"
 
-  cd "$KLEE_DIR/Debug"
+CMAKE_OPTIONS=(
+  "${COMMON_CMAKE_OPTIONS[@]}"
+  -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
+)
 
-  [ -f "Makefile" ] || CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" \
-                     CMAKE_PREFIX_PATH="$KLEE_DIR/../z3/build" \
-                     CMAKE_INCLUDE_PATH="$KLEE_DIR/../z3/build/include/" \
-                     cmake \
-                         -DENABLE_UNIT_TESTS=OFF \
-                         -DBUILD_SHARED_LIBS=OFF \
-                         -DLLVM_CONFIG_BINARY="$KLEE_DIR/../llvm/Release/bin/llvm-config" \
-                         -DLLVMCC="$KLEE_DIR/../llvm/Release/bin/clang" \
-                         -DLLVMCXX="$KLEE_DIR/../llvm/Release/bin/clang++" \
-                         -DENABLE_SOLVER_Z3=ON \
-                         -DENABLE_KLEE_UCLIBC=ON \
-                         -DKLEE_UCLIBC_PATH="$KLEE_DIR/../klee-uclibc" \
-                         -DENABLE_POSIX_RUNTIME=ON \
-                         -DCMAKE_BUILD_TYPE=Debug \
-                         -DENABLE_KLEE_ASSERTS=ON \
-                         -DENABLE_DOXYGEN=ON \
-                         ..
+build() {
+  [ -d "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
+  cd "$BUILD_DIR"
 
-  make -kj $(nproc) || exit 1
-}
-
-function release {
-  [ -d "$KLEE_DIR/Release" ] || mkdir "$KLEE_DIR/Release"
-
-  cd "$KLEE_DIR/Release"
-
-  [ -f "Makefile" ] || CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -DNDEBUG" \
-                     CMAKE_PREFIX_PATH="$KLEE_DIR/../z3/build" \
-                     CMAKE_INCLUDE_PATH="$KLEE_DIR/../z3/build/include/" \
-                     cmake \
-                         -DENABLE_UNIT_TESTS=OFF \
-                         -DBUILD_SHARED_LIBS=OFF \
-                         -DENABLE_KLEE_ASSERTS=OFF \
-                         -DLLVM_CONFIG_BINARY="$KLEE_DIR/../llvm/Release/bin/llvm-config" \
-                         -DLLVMCC="$KLEE_DIR/../llvm/Release/bin/clang" \
-                         -DLLVMCXX="$KLEE_DIR/../llvm/Release/bin/clang++" \
-                         -DENABLE_SOLVER_Z3=ON \
-                         -DENABLE_KLEE_UCLIBC=ON \
-                         -DKLEE_UCLIBC_PATH="$KLEE_DIR/../klee-uclibc" \
-                         -DENABLE_POSIX_RUNTIME=ON \
-                         -DCMAKE_BUILD_TYPE=Release \
-                         -DENABLE_KLEE_ASSERTS=ON \
-                         -DENABLE_DOXYGEN=OFF \
-                         ..
+  [ -f "Makefile" ] || \
+    CMAKE_PREFIX_PATH="$Z3_DIR/build" \
+    CMAKE_INCLUDE_PATH="$Z3_DIR/build/include/" \
+    cmake \
+      -DENABLE_UNIT_TESTS=OFF \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DLLVM_CONFIG_BINARY="$LLVM_DIR/Release/bin/llvm-config" \
+      -DLLVMCC="$LLVM_DIR/Release/bin/clang" \
+      -DLLVMCXX="$LLVM_DIR/Release/bin/clang++" \
+      -DENABLE_SOLVER_Z3=ON \
+      -DENABLE_KLEE_UCLIBC=ON \
+      -DKLEE_UCLIBC_PATH="$KLEE_ULIBC" \
+      -DENABLE_POSIX_RUNTIME=ON \
+      -DENABLE_KLEE_ASSERTS=ON \
+      -DENABLE_DOXYGEN=OFF \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      $KLEE_DIR
 
   make -kj $(nproc) || exit 1
 }
 
-if [ $# -ge 1 ] && [[ "$1" == "debug" ]]; then
-  debug
-else
-  debug
-  release
-fi
+build
