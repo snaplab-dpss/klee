@@ -20,22 +20,6 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 
-namespace {
-llvm::cl::opt<std::string> Z3QueryDumpFile(
-    "debug-z3-dump-queries", llvm::cl::init(""),
-    llvm::cl::desc(
-        "Dump Z3's representation of the query to the specified path"));
-
-llvm::cl::opt<bool> Z3ValidateModels(
-    "debug-z3-validate-models", llvm::cl::init(false),
-    llvm::cl::desc(
-        "When generating Z3 models validate these against the query"));
-
-llvm::cl::opt<unsigned>
-    Z3VerbosityLevel("debug-z3-verbosity", llvm::cl::init(0),
-                     llvm::cl::desc("Z3 verbosity level (default=0)"));
-} // namespace
-
 #include "llvm/Support/ErrorHandling.h"
 
 namespace klee {
@@ -97,25 +81,6 @@ Z3SolverImpl::Z3SolverImpl()
   Z3_params_inc_ref(builder->ctx, solverParameters);
   timeoutParamStrSymbol = Z3_mk_string_symbol(builder->ctx, "timeout");
   setCoreSolverTimeout(timeout);
-
-  if (!Z3QueryDumpFile.empty()) {
-    std::string error;
-    dumpedQueriesFile = klee_open_output_file(Z3QueryDumpFile, error);
-    if (!error.empty()) {
-      klee_error("Error creating file for dumping Z3 queries: %s",
-                 error.c_str());
-    }
-    klee_message("Dumping Z3 queries to \"%s\"", Z3QueryDumpFile.c_str());
-  }
-
-  // Set verbosity
-  if (Z3VerbosityLevel > 0) {
-    std::string underlyingString;
-    llvm::raw_string_ostream ss(underlyingString);
-    ss << Z3VerbosityLevel;
-    ss.flush();
-    Z3_global_param_set("verbose", underlyingString.c_str());
-  }
 }
 
 Z3SolverImpl::~Z3SolverImpl() {
@@ -363,13 +328,6 @@ SolverImpl::SolverRunStatus Z3SolverImpl::handleSolverResponse(
         Z3_dec_ref(builder->ctx, arrayElementExpr);
       }
       values->push_back(data);
-    }
-
-    // Validate the model if requested
-    if (Z3ValidateModels) {
-      bool success = validateZ3Model(theSolver, theModel);
-      if (!success)
-        abort();
     }
 
     Z3_model_dec_ref(builder->ctx, theModel);
