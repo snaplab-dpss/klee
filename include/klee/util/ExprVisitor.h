@@ -80,7 +80,7 @@ namespace klee {
     virtual Action visitSgt(const SgtExpr&);
     virtual Action visitSge(const SgeExpr&);
 
-  private:
+  protected:
     typedef ExprHashMap< ref<Expr> > visited_ty;
     visited_ty visited;
     bool recursive;
