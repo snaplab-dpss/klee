@@ -7,9 +7,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "MetaSMTSolver.h"
 #include "STPSolver.h"
 #include "Z3Solver.h"
-#include "MetaSMTSolver.h"
 #include "klee/CommandLine.h"
 #include "klee/Internal/Support/ErrorHandling.h"
 #include "klee/Solver.h"
@@ -41,7 +41,6 @@ Solver *createCoreSolver(CoreSolverType cst) {
     return createDummySolver();
   case Z3_SOLVER:
 #ifdef ENABLE_Z3
-    klee_message("Using Z3 solver backend");
     return new Z3Solver();
 #else
     klee_message("Not compiled with Z3 support");
@@ -54,4 +53,4 @@ Solver *createCoreSolver(CoreSolverType cst) {
     llvm_unreachable("Unsupported CoreSolverType");
   }
 }
-}
+} // namespace klee
